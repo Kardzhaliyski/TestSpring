@@ -132,7 +132,7 @@ class testConstructorAutowired {
 
     @Test
     void autowireWithInterface() {
-        assertThrows(BeanCreationException.class ,() -> new AnnotationConfigApplicationContext(F.class, FImpl.class));
+        assertThrows(BeanCreationException.class, () -> new AnnotationConfigApplicationContext(F.class, FImpl.class));
     }
 
     @Test
@@ -141,5 +141,24 @@ class testConstructorAutowired {
         FS fs = context.getBean(FS.class);
         F fField = fs.fField;
         assertNotNull(fField);
+    }
+
+    @Test
+    void autowireWithAbstractClass() {
+        assertThrows(BeanCreationException.class, () -> new AnnotationConfigApplicationContext(G.class));
+    }
+
+    @Test
+    void autowireWithAbstractClass2() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(GS.class, GImpl.class);
+        GS gs = context.getBean(GS.class);
+        assertNotNull(gs);
+        assertNotNull(gs.gField);
+    }
+
+    @Test
+    void autowireWithAbstractClass3() {
+        assertThrows(BeanCreationException.class, () -> new AnnotationConfigApplicationContext(GS.class, GImpl.class, GImpl2.class));
+
     }
 }
