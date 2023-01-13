@@ -137,8 +137,9 @@ class testConstructorAutowired {
 
     @Test
     void autowireWithInterface2() {
-        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Config.class, FImpl.class);
-        //todo
-//        F bean = context.getBean(F.class);
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(FS.class, FImpl.class);
+        FS fs = context.getBean(FS.class);
+        F fField = fs.fField;
+        assertNotNull(fField);
     }
 }

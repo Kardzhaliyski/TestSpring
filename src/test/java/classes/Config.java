@@ -29,8 +29,4 @@ public class Config {
         return 14;
     }
 
-    @Bean
-    F f() {
-        return new FImpl();
-    }
 }
