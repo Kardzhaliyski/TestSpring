@@ -4,43 +4,39 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.PropertySource;
 
-@PropertySource("application.properties")
 @Configuration
-public class Config {
+public class Config2 {
     @Bean
-    @Primary
-    public static int anInt() {
-        return 11;
+    public static byte anInt1() {
+        return 21;
     }
 
     @Bean(name = "i2")
     public static int anInt2() {
-        return 12;
+        return 22;
     }
 
     @Bean(name = "i3")
     public static int anInt3() {
-        return 13;
+        return 23;
     }
 
     @Bean
     @Qualifier("i4")
-    public static int anInt4() {
-        return 14;
+    public static int anInt5() {
+        return 24;
     }
 
     @Bean
     @Qualifier("maxNum")
-    public static long aNum() {
-        return Long.MAX_VALUE;
+    public static int aNum() {
+        return Integer.MAX_VALUE;
     }
 
     @Bean
     @Qualifier("maxNum2")
-    public static long aNum2() {
-        return Long.MAX_VALUE;
+    public static int aNum22() {
+        return Integer.MAX_VALUE;
     }
-
 }

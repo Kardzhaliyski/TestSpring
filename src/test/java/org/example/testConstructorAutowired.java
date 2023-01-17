@@ -5,9 +5,18 @@ import classes.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.UnsatisfiedDependencyException;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.env.PropertySource;
+import org.springframework.core.env.PropertySources;
+import org.springframework.core.env.PropertySourcesPropertyResolver;
+
+import java.util.Properties;
 
 class testConstructorAutowired {
     @Test
@@ -159,6 +168,102 @@ class testConstructorAutowired {
     @Test
     void autowireWithAbstractClass3() {
         assertThrows(BeanCreationException.class, () -> new AnnotationConfigApplicationContext(GS.class, GImpl.class, GImpl2.class));
-
     }
+
+    @Test
+    void callMethodsConstructorsAndFields() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(H.class, B.class);
+        H bean = context.getBean(H.class);
+        assertNotNull(bean.bField1);
+        assertNotNull(bean.bField2);
+        assertNotNull(bean.bField3);
+    }
+
+    @Test
+    void multipleConfigsKeepPrimaryIfMethodNotReplaced() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Config.class, Config2.class, DB.class);
+        D bean = context.getBean(D.class);
+        DB bean2 = context.getBean(DB.class);
+        assertEquals(11, bean.n);
+    }
+
+    @Test
+    void multipleConfigsReplacesMethodsWithSameMethodName() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Config.class, Config2.class, DB.class);
+        DB bean2 = context.getBean(DB.class);
+        assertEquals(23, bean2.n);
+    }
+
+    @Test
+    void multipleConfigsDoesntReplacesMethodsWithSameQualifierName() {
+        assertThrows(UnsatisfiedDependencyException.class, () -> new AnnotationConfigApplicationContext(Config.class, Config2.class, DC.class));
+    }
+
+    @Test
+    void multipleConfigReplacingMethodsWithSameNameAndDifferentTypes() {
+        assertThrows(UnsatisfiedDependencyException.class, () -> new AnnotationConfigApplicationContext(Config.class, Config2.class, I.class));
+    }
+
+    @Test
+    void multipleConfigReplacingMethodsWithSameNameAndDifferentTypes2() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Config.class, Config2.class, J.class);
+        J bean = context.getBean(J.class);
+        assertEquals(Integer.MAX_VALUE, bean.maxInt);
+        assertEquals(Long.MAX_VALUE, bean.maxLong);
+    }
+
+    @Test
+    void autowireStaticFieldShouldNotSet() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Config.class, K.class);
+        assertEquals(0, K.num1);
+    }
+
+    @Test
+    void autowireStaticSetMethodShouldNotSet() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Config.class, K.class);
+        assertEquals(0, K.num2);
+    }
+
+    @Test
+    void autowireNonStaticSetMethodShouldSet() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Config.class, K.class);
+        assertNotEquals(0, K.num3);
+    }
+
+    @Test
+    void getValueFromPropertyFileUsingAnnotation() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Config.class, L.class);
+        L l = context.getBean(L.class);
+        assertEquals("someName",l.name);
+    }
+
+    @Test
+    void getValueFromProperties() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        Properties properties = new Properties();
+        String value = "aName";
+        properties.put("name", value);
+        PropertySource<String> ps = new PropertySource<String>("Custom") {
+            final Properties prop = properties;
+            @Override
+            public String getProperty(String name) {
+                return properties.getProperty(name);
+            }
+        };
+
+        context.getEnvironment().getPropertySources().addLast(ps);
+        context.register(L.class);
+        context.refresh();
+
+        L l = context.getBean(L.class);
+        assertEquals(value, l.name);
+    }
+
+
+
+
+
+
+
+
 }
