@@ -5,16 +5,11 @@ import classes.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.UnsatisfiedDependencyException;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.env.PropertySource;
-import org.springframework.core.env.PropertySources;
-import org.springframework.core.env.PropertySourcesPropertyResolver;
 
 import java.util.Properties;
 
@@ -234,7 +229,7 @@ class testConstructorAutowired {
     void getValueFromPropertyFileUsingAnnotation() {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Config.class, L.class);
         L l = context.getBean(L.class);
-        assertEquals("someName",l.name);
+        assertEquals("someName", l.name);
     }
 
     @Test
@@ -245,6 +240,7 @@ class testConstructorAutowired {
         properties.put("name", value);
         PropertySource<String> ps = new PropertySource<String>("Custom") {
             final Properties prop = properties;
+
             @Override
             public String getProperty(String name) {
                 return properties.getProperty(name);
@@ -259,10 +255,66 @@ class testConstructorAutowired {
         assertEquals(value, l.name);
     }
 
+    @Test
+    void testSingletonScope() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(M.class);
+        M m1 = context.getBean(M.class);
+        M m2 = context.getBean(M.class);
 
+        assertNotNull(m1);
+        assertEquals(m1.num, m2.num);
+        assertEquals(m1, m2);
+    }
 
+    @Test
+    void testPrototypeScope() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(TestBeanPostProcessor.class, TestBeanPostProcessor2.class, MA.class);
+        MA m1 = context.getBean(MA.class);
+        MA m2 = context.getBean(MA.class);
 
+        assertNotNull(m1);
+        assertNotEquals(m1.num, m2.num);
+        assertNotEquals(m1, m2);
+    }
 
+    @Test //todo NOT WORKING
+    void changePropertyValueUsingBeanFactoryPostProcessor() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Config.class, TestBeanFactoryPostProcessor.class, L.class);
+        L l = context.getBean(L.class);
+        assertEquals("BeanFactory", l.name);
+    }
+
+    @Test
+    void testLifecycleMethods() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(N.class);
+        context.registerShutdownHook();
+        System.out.println("----------");
+    }
+
+    @Test
+    void xmlProperty() {
+        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("/config.xml");
+        L l = context.getBean(L.class);
+        assertEquals("xmlValue", l.name);
+    }
+
+    @Test
+    void xmlProperty2() {
+        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext();
+        context.setConfigLocation("/config.xml");
+        context.addBeanFactoryPostProcessor(new TestBeanFactoryPostProcessor());
+        context.refresh();
+
+        L l = context.getBean(L.class);
+        assertEquals("BeanFactoryPostProcessor", l.name);
+    }
+
+    @Test
+    void textBeanFactoryPostProcessor() {
+        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("/config2.xml");
+        L l = context.getBean(L.class);
+        assertEquals("BeanFactoryPostProcessor", l.name);
+    }
 
 
 
