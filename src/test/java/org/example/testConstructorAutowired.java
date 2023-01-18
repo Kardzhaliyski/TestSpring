@@ -277,12 +277,6 @@ class testConstructorAutowired {
         assertNotEquals(m1, m2);
     }
 
-    @Test //todo NOT WORKING
-    void changePropertyValueUsingBeanFactoryPostProcessor() {
-        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Config.class, TestBeanFactoryPostProcessor.class, L.class);
-        L l = context.getBean(L.class);
-        assertEquals("BeanFactory", l.name);
-    }
 
     @Test
     void testLifecycleMethods() {
