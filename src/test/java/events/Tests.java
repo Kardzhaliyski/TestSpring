@@ -1,14 +1,15 @@
-package org.example;
+package events;
 
-import events.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 
 
+import java.util.concurrent.TimeUnit;
+
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TestEvents {
+public class Tests {
 
     @Test
     void testImplListenerReceivePublishedObject() {
@@ -82,21 +83,22 @@ public class TestEvents {
 
         assertNotNull(listener.event1Finished);
         assertNotNull(listener.event2Finished);
-        assertTrue(listener.event1Finished >= listener.event2Started ||
-                listener.event2Finished >= listener.event1Started);
+        assertTrue(listener.event1Finished <= listener.event2Started ||
+                listener.event2Finished <= listener.event1Started);
     }
 
     @Test
-    void testMultiThreadPublisher() {
+    void testMultiThreadPublisher() throws InterruptedException {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MyEventPublisher.class, MySlowListener.class);
         MyEventPublisher publisher = context.getBean(MyEventPublisher.class);
         MySlowListener listener = context.getBean(MySlowListener.class);
-        publisher.multicastSomething("event");
+        publisher.multicastSomething(new MyApplicationEvent("event"));
 
-        assertNotNull(listener.event1Finished);
-        assertNotNull(listener.event2Finished);
-        assertTrue(listener.event1Finished < listener.event2Started &&
-                listener.event2Finished < listener.event1Started);
+        TimeUnit.SECONDS.sleep(1);
+        assertNotEquals(0, listener.event1Finished);
+        assertNotEquals(0, listener.event2Finished);
+        assertTrue(listener.event2Started < listener.event1Finished);
+        assertTrue(listener.event1Started < listener.event2Finished);
     }
 
     @Test
@@ -114,6 +116,13 @@ public class TestEvents {
     }
 
     @Test
+    void testListenerCanRepeatOnItselfWhileMulticasting() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MyEventPublisher.class, MyInfiniteLoopListener.class);
+        MyEventPublisher publisher = context.getBean(MyEventPublisher.class);
+        assertThrows(StackOverflowError.class, () -> publisher.multicastSomething(new MyApplicationEvent(0)));
+    }
+
+    @Test
     void testResendingListener() {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MyEventPublisher.class, MyResendingListener.class);
         MyEventPublisher publisher = context.getBean(MyEventPublisher.class);
@@ -123,5 +132,4 @@ public class TestEvents {
         publisher.publishSomething(3);
         assertTrue(listener.success);
     }
-
 }

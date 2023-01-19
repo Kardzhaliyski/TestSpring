@@ -1,5 +1,6 @@
 package events;
 
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.EventListener;
 
 public class MyInfiniteLoopListener {
@@ -13,8 +14,14 @@ public class MyInfiniteLoopListener {
         return "Something";
     }
 
+
     @EventListener
     public Boolean event2(String obj) {
         return true;
+    }
+
+    @EventListener
+    public ApplicationEvent event(ApplicationEvent event) {
+        return event;
     }
 }

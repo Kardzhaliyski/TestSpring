@@ -1,6 +1,8 @@
 package events;
 
+import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 
 import java.time.LocalTime;
 import java.util.concurrent.TimeUnit;
@@ -8,26 +10,25 @@ import java.util.concurrent.TimeUnit;
 
 public class MySlowListener {
 
-    public Long event1Started = null;
-    public Long event1Finished = null;
-    public Long event2Finished = null;
-    public Long event2Started = null;
+    public long event1Started = 0;
+    public long event1Finished = 0;
+    public long event2Started = 0;
+    public long event2Finished = 0;
     @EventListener
-    public void event1(Object obj) throws InterruptedException {
-
+    public void event1(String obj) {
         event1Started = System.currentTimeMillis();
         task();
         event1Finished = System.currentTimeMillis();
     }
 
     @EventListener
-    public void event2(Object obj) throws InterruptedException {
+    public void event2(String obj)  {
         event2Started = System.currentTimeMillis();
         task();
         event2Finished = System.currentTimeMillis();
     }
 
-    private static void task() {
+    private void task() {
         String str = "";
         for (int i = 0; i < 100000; i++) {
             str = str + Math.random();
@@ -35,5 +36,19 @@ public class MySlowListener {
                 str = str.substring(str.length() / 2);
             }
         }
+    }
+
+    @EventListener
+    public void appEvent1(MyApplicationEvent event) {
+        event1Started = System.currentTimeMillis();
+        task();
+        event1Finished = System.currentTimeMillis();
+    }
+
+    @EventListener
+    public void appEvent2(MyApplicationEvent event) {
+        event2Started = System.currentTimeMillis();
+        task();
+        event2Finished = System.currentTimeMillis();
     }
 }

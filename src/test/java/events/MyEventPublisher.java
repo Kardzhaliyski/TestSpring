@@ -27,13 +27,8 @@ public class MyEventPublisher {
         eventPublisher.publishEvent(obj);
     }
 
-    public void multicastSomething(Object obj) {
+    public void multicastSomething(ApplicationEvent event) {
         eventMulticaster.setTaskExecutor(new SimpleAsyncTaskExecutor());
-        eventMulticaster.multicastEvent(new ApplicationEvent(obj) {
-            @Override
-            public Object getSource() {
-                return super.getSource();
-            }
-        });
+        eventMulticaster.multicastEvent(event);
     }
 }
